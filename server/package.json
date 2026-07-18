@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
+    "build": "echo 'No build step required'",
     "lint": "eslint src",
     "test": "node --test src/lib/scoring.test.js"
   },

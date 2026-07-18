@@ -1,0 +1,88 @@
+{
+  "jobId": "qpuj0NDThD",
+  "knockouts": [
+    {
+      "id": "4yr-dev-experience",
+      "label": "4+ years of professional software development experience",
+      "description": "4+ years of professional software development experience, required"
+    },
+    {
+      "id": "react-python-core-stack",
+      "label": "Strong hands-on experience with both React.js (frontend) and Python/Django (backend)",
+      "description": "Strong hands-on experience with Javascript/React.js AND Python/Django, required"
+    }
+  ],
+  "criteria": [
+    {
+      "id": "postgresql",
+      "label": "Strong hands-on experience with PostgreSQL",
+      "description": "Strong hands-on experience with PostgreSQL, including relational database design and optimization",
+      "weight": 4,
+      "kind": "skill"
+    },
+    {
+      "id": "docker",
+      "label": "Strong hands-on experience with Docker",
+      "description": "Strong hands-on experience with Docker-based environments, including deployment/DevOps support",
+      "weight": 4,
+      "kind": "skill"
+    },
+    {
+      "id": "linux",
+      "label": "Strong hands-on experience with Linux",
+      "description": "Strong hands-on experience with Linux",
+      "weight": 3,
+      "kind": "skill"
+    },
+    {
+      "id": "rest-api",
+      "label": "Experience building and consuming REST APIs",
+      "description": "Experience building and consuming REST APIs",
+      "weight": 4,
+      "kind": "experience"
+    },
+    {
+      "id": "frontend-state-management",
+      "label": "Good understanding of frontend architecture and state management",
+      "description": "Good understanding of frontend architecture and state management",
+      "weight": 4,
+      "kind": "skill"
+    },
+    {
+      "id": "cypress-testing",
+      "label": "Hands-on experience with Cypress for web application testing",
+      "description": "Hands-on experience with Cypress for testing web applications built with React",
+      "weight": 3,
+      "kind": "skill"
+    },
+    {
+      "id": "flutter-mobile",
+      "label": "Exposure to Flutter for mobile application development",
+      "description": "Exposure to Flutter development for designing and maintaining mobile applications",
+      "weight": 3,
+      "kind": "skill"
+    },
+    {
+      "id": "english-communication",
+      "label": "Excellent communication skills in English",
+      "description": "Excellent communication skills in English for collaborating with an international, remote team",
+      "weight": 4,
+      "kind": "language"
+    },
+    {
+      "id": "fullstack-feature-delivery",
+      "label": "Develop and maintain full-stack product features end-to-end",
+      "description": "Develop new product features, build and maintain RESTful APIs/backend services, integrate third-party systems, and troubleshoot/debug production issues across the full stack",
+      "weight": 5,
+      "kind": "other"
+    },
+    {
+      "id": "remote-team-collaboration",
+      "label": "Collaborate closely with Product Owners, Developers, QA, and stakeholders in a remote international team",
+      "description": "Collaborate closely with Product Owners, Developers, QA, and stakeholders; comfortable working directly with international teams within the Amsterdam/Europe time zone overlap",
+      "weight": 3,
+      "kind": "other"
+    }
+  ],
+  "generatedAt": "2026-07-18T09:15:00.000Z"
+}

@@ -11,9 +11,8 @@ async function wipeDirContents(dirPath) {
 }
 
 export async function bootstrapStorage() {
-  const { root, uploads, jobs, tmp } = config.storage;
+  const { root, jobs, tmp } = config.storage;
   await fs.mkdir(root, { recursive: true });
-  await fs.mkdir(uploads, { recursive: true });
   await fs.mkdir(jobs, { recursive: true });
   await fs.mkdir(tmp, { recursive: true });
   await wipeDirContents(tmp);

@@ -5,28 +5,25 @@ import { config } from "../lib/config.js";
 import { writeJsonAtomic, readJson } from "./jsonStore.js";
 import { CvMetaSchema } from "../schemas/cvUpload.schema.js";
 
-// No job exists yet in Step 1 (jobs CRUD is out of scope), so CVs are
-// filed under a placeholder "unassigned" bucket instead of {jobId}.
-const UNASSIGNED = "unassigned";
-
-function candidateDir(candidateId) {
-  return path.join(config.storage.uploads, UNASSIGNED, candidateId);
+function candidateDir(jobId, candidateId) {
+  return path.join(config.storage.jobs, jobId, "candidates", candidateId);
 }
 
-export async function saveCv({ tmpPath, originalName, mimeType, size }) {
+export async function saveCv({ jobId, tmpPath, originalName, mimeType, size }) {
   const candidateId = nanoid(10);
   const ext = path.extname(originalName);
-  const dir = candidateDir(candidateId);
+  const dir = candidateDir(jobId, candidateId);
   await fs.mkdir(dir, { recursive: true });
 
-  const storedPath = path.join(dir, `original${ext}`);
-  await fs.rename(tmpPath, storedPath);
+  const storedAs = `original${ext}`;
+  await fs.rename(tmpPath, path.join(dir, storedAs));
 
   const meta = CvMetaSchema.parse({
     candidateId,
     originalName,
     mimeType,
     size,
+    storedAs,
     uploadedAt: new Date().toISOString(),
   });
   await writeJsonAtomic(path.join(dir, "meta.json"), meta);
@@ -34,6 +31,25 @@ export async function saveCv({ tmpPath, originalName, mimeType, size }) {
   return meta;
 }
 
-export async function getCvMeta(candidateId) {
-  return readJson(path.join(candidateDir(candidateId), "meta.json"));
+export async function getCvMeta(jobId, candidateId) {
+  return readJson(path.join(candidateDir(jobId, candidateId), "meta.json"));
+}
+
+export async function listCandidates(jobId) {
+  const candidatesRoot = path.join(config.storage.jobs, jobId, "candidates");
+  let entries;
+  try {
+    entries = await fs.readdir(candidatesRoot, { withFileTypes: true });
+  } catch (err) {
+    if (err.code === "ENOENT") return [];
+    throw err;
+  }
+  const metas = await Promise.all(
+    entries.filter((entry) => entry.isDirectory()).map((entry) => getCvMeta(jobId, entry.name))
+  );
+  return metas.filter(Boolean);
+}
+
+export function candidateDirPath(jobId, candidateId) {
+  return candidateDir(jobId, candidateId);
 }

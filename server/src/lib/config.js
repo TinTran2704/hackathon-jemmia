@@ -11,8 +11,15 @@ export const config = {
   maxUploadBytes: (Number(process.env.MAX_UPLOAD_MB) || 5) * 1024 * 1024,
   storage: {
     root: storageRoot,
-    uploads: path.join(storageRoot, "uploads"),
     jobs: path.join(storageRoot, "jobs"),
     tmp: path.join(storageRoot, "tmp"),
+  },
+  llm: {
+    baseUrl: process.env.LLM_BASE_URL || null,
+    apiKey: process.env.LLM_API_KEY || null,
+    model: process.env.LLM_MODEL || null,
+    get configured() {
+      return Boolean(this.baseUrl && this.apiKey && this.model);
+    },
   },
 };

@@ -3,10 +3,10 @@ import multer from "multer";
 import { config } from "../lib/config.js";
 import { AppError } from "../lib/errors.js";
 import { uploadCv } from "../services/cvService.js";
+import { requireJob } from "./jobs.js";
 
 const ALLOWED_MIME_TYPES = new Set([
   "application/pdf",
-  "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
 
@@ -15,7 +15,7 @@ const upload = multer({
   limits: { fileSize: config.maxUploadBytes },
   fileFilter: (req, file, cb) => {
     if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
-      cb(new AppError("INVALID_FILE_TYPE", "Only PDF or Word documents are accepted", 400));
+      cb(new AppError("INVALID_FILE_TYPE", "Only PDF or DOCX documents are accepted", 400));
       return;
     }
     cb(null, true);
@@ -44,12 +44,14 @@ function handleUpload(req, res, next) {
   });
 }
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
-router.post("/upload", handleUpload, async (req, res, next) => {
+router.use(requireJob);
+
+router.post("/", handleUpload, async (req, res, next) => {
   try {
     if (!req.file) throw new AppError("NO_FILE", "No file uploaded", 400);
-    const result = await uploadCv(req.file);
+    const result = await uploadCv({ jobId: req.params.jobId, file: req.file });
     res.status(201).json(result);
   } catch (err) {
     next(err);

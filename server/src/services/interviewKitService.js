@@ -23,7 +23,7 @@ const LlmInterviewKitSchema = z.object({
   openingNote: z.string().max(300),
 });
 
-export async function generate({ jobId, candidateId, force = false }) {
+export async function generate({ jobId, candidateId, force = false, comments }) {
   const profile = await readProfile(jobId, candidateId);
   if (!profile) {
     throw new AppError("PROFILE_MISSING", "Candidate profile is missing", 409);
@@ -39,14 +39,24 @@ export async function generate({ jobId, candidateId, force = false }) {
     throw new AppError("CRITERIA_MISSING", "Job criteria are missing", 409);
   }
 
+  // Guard: if candidate is failed (knockout failed or reject_review) and has not been marked as passed by HR, block kit generation.
+  const isFailed = evaluation.knockoutFailed || evaluation.recommendation === "reject_review";
+  if (isFailed && evaluation.hrDecision !== "passed") {
+    throw new AppError(
+      "DECISION_REQUIRED",
+      "Interview kit cannot be generated for failed candidates unless explicitly marked as passed by HR",
+      403
+    );
+  }
+
   if (!force) {
     const cached = await readInterviewKit(jobId, candidateId);
-    if (cached && cached.evaluationVersion === evaluation.evaluatedAt) {
+    if (cached && cached.evaluationVersion === evaluation.evaluatedAt && !comments) {
       return cached;
     }
   }
 
-  const { system, user } = generateInterviewKitPrompt({ profile, evaluation, criteria });
+  const { system, user } = generateInterviewKitPrompt({ profile, evaluation, criteria, comments });
   const llmResult = await completeJson({ system, user, schema: LlmInterviewKitSchema });
 
   const kit = InterviewKitSchema.parse({
@@ -55,6 +65,8 @@ export async function generate({ jobId, candidateId, force = false }) {
     candidateId,
     generatedAt: new Date().toISOString(),
     evaluationVersion: evaluation.evaluatedAt,
+    comments: comments ?? null,
+    invitationSent: null, // Reset invitation status on regeneration
   });
 
   await writeInterviewKit(jobId, candidateId, kit);

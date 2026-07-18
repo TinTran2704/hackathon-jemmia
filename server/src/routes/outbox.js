@@ -8,6 +8,7 @@ import { readProfile } from "../repositories/profileRepo.js";
 import * as notificationService from "../services/notificationService.js";
 import * as feedbackService from "../services/feedbackService.js";
 import * as rankingService from "../services/rankingService.js";
+import { readInterviewKit, writeInterviewKit } from "../repositories/interviewKitRepo.js";
 
 const HrNotifyBody = z.object({
   to: z.string().email(),
@@ -134,6 +135,68 @@ router.post("/candidates/:candidateId/notify/feedback", async (req, res, next) =
     };
 
     await outboxRepo.saveMessage(jobId, message);
+    res.status(201).json(message);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/jobs/:jobId/candidates/:candidateId/notify/invite
+router.post("/candidates/:candidateId/notify/invite", async (req, res, next) => {
+  try {
+    const { jobId, candidateId } = req.params;
+    const profile = await readProfile(jobId, candidateId);
+    const to = profile?.email;
+
+    if (!to) {
+      throw new AppError("NO_EMAIL", "No email address found for the candidate", 422);
+    }
+
+    const candidateName = profile.fullName || "Applicant";
+    const subject = `[HireKit] Invitation for Interview - ${candidateName}`;
+    const bodyText = `Dear ${candidateName},
+
+We are pleased to inform you that your profile has successfully passed our initial CV screening for the position of "${req.job.title}".
+
+Our team was highly impressed by your achievements. We would like to invite you to an interview to discuss your experience and fit for the role in more detail.
+
+We will contact you shortly to schedule a convenient time.
+
+Best regards,
+Recruitment Team`;
+
+    const messageId = nanoid(10);
+    let delivery = "demo";
+    let status = "stored";
+
+    try {
+      delivery = await notificationService.sendMail({ to, subject, bodyText });
+      status = delivery === "smtp" ? "sent" : "stored";
+    } catch {
+      status = "failed";
+    }
+
+    const message = {
+      id: messageId,
+      type: "interview_invite",
+      to,
+      subject,
+      bodyText,
+      candidateId,
+      createdAt: new Date().toISOString(),
+      delivery,
+      status,
+    };
+
+    await outboxRepo.saveMessage(jobId, message);
+
+    // Update interview kit status if it exists
+    const kit = await readInterviewKit(jobId, candidateId);
+    if (kit) {
+      kit.invitationSent = true;
+      await writeInterviewKit(jobId, candidateId, kit);
+    }
+
     res.status(201).json(message);
   } catch (err) {
     next(err);

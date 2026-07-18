@@ -26,8 +26,8 @@ export function getEvaluation(jobId, candidateId) {
   return get(`/jobs/${jobId}/candidates/${candidateId}/evaluation`);
 }
 
-export function generateInterviewKit(jobId, candidateId, { force = false } = {}) {
-  return post(`/jobs/${jobId}/candidates/${candidateId}/interview-kit${force ? "?force=true" : ""}`);
+export function generateInterviewKit(jobId, candidateId, { force = false, comments } = {}) {
+  return post(`/jobs/${jobId}/candidates/${candidateId}/interview-kit${force ? "?force=true" : ""}`, comments ? { comments } : {});
 }
 
 export function getInterviewKit(jobId, candidateId) {
@@ -36,4 +36,12 @@ export function getInterviewKit(jobId, candidateId) {
 
 export function sendCandidateFeedback(jobId, candidateId, email) {
   return post(`/jobs/${jobId}/candidates/${candidateId}/notify/feedback`, email ? { to: email } : {});
+}
+
+export function setCandidateDecision(jobId, candidateId, decision) {
+  return post(`/jobs/${jobId}/candidates/${candidateId}/decision`, { decision });
+}
+
+export function sendInterviewInvitation(jobId, candidateId) {
+  return post(`/jobs/${jobId}/candidates/${candidateId}/notify/invite`);
 }

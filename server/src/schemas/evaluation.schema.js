@@ -31,4 +31,5 @@ export const EvaluationSchema = LlmEvaluationSchema.extend({
   recommendation: z.enum(["strong_match", "match", "weak_match", "reject_review"]),
   evaluatedAt: z.string(),
   criteriaVersion: z.string(),
+  hrDecision: z.enum(["passed", "rejected", "potential"]).optional().nullable(),
 });

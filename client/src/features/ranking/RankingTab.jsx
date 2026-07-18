@@ -53,6 +53,10 @@ function InterviewKitSection({ jobId, candidateId, evaluation }) {
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
 
+  const [comments, setComments] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteError, setInviteError] = useState(null);
+
   async function loadKit() {
     setLoading(true);
     setError(null);
@@ -74,16 +78,33 @@ function InterviewKitSection({ jobId, candidateId, evaluation }) {
     loadKit();
   }, [jobId, candidateId]);
 
-  async function handleGenerate(force = false) {
+  async function handleGenerate(force = false, regenComments = null) {
     setLoading(true);
     setError(null);
     try {
-      const data = await candidatesApi.generateInterviewKit(jobId, candidateId, { force });
+      const data = await candidatesApi.generateInterviewKit(jobId, candidateId, {
+        force,
+        comments: regenComments,
+      });
       setKit(data);
+      if (regenComments) setComments("");
     } catch (err) {
       setError(err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSendInvite() {
+    setInviting(true);
+    setInviteError(null);
+    try {
+      await candidatesApi.sendInterviewInvitation(jobId, candidateId);
+      await loadKit(); // Reload to pick up invitationSent = true
+    } catch (err) {
+      setInviteError(err);
+    } finally {
+      setInviting(false);
     }
   }
 
@@ -116,7 +137,21 @@ ${kit.fitQuestions.map((q, i) => `${i + 1}. Question: ${q.question}\n   Based on
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-sm font-semibold text-slate-800">Personalized Interview Kit</h4>
         {kit && (
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            {kit.invitationSent ? (
+              <span className="rounded bg-green-50 border border-green-200 px-2.5 py-1 text-xs font-semibold text-green-700">
+                ✓ Invitation Sent
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSendInvite}
+                disabled={inviting || loading}
+                className="rounded-md bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white transition disabled:opacity-50"
+              >
+                {inviting ? "Sending..." : "✉️ Send Invitation"}
+              </button>
+            )}
             <button
               type="button"
               onClick={handleCopyAll}
@@ -136,7 +171,7 @@ ${kit.fitQuestions.map((q, i) => `${i + 1}. Question: ${q.question}\n   Based on
         )}
       </div>
 
-      <ErrorBanner error={error} />
+      <ErrorBanner error={error || inviteError} />
 
       {!kit ? (
         <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center">
@@ -167,9 +202,15 @@ ${kit.fitQuestions.map((q, i) => `${i + 1}. Question: ${q.question}\n   Based on
           )}
 
           <div className="rounded-md border border-slate-100 bg-slate-50/50 p-3">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Opening Note</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Opening Note</span>
             <p className="text-sm text-slate-700 italic">"{kit.openingNote}"</p>
           </div>
+
+          {kit.comments && (
+            <div className="rounded-md border border-violet-100 bg-violet-50/30 p-3 text-xs text-violet-800">
+              <span className="font-bold">HR Guidelines Applied:</span> "{kit.comments}"
+            </div>
+          )}
 
           <div className="space-y-3">
             <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Strength Probes</h5>
@@ -196,6 +237,28 @@ ${kit.fitQuestions.map((q, i) => `${i + 1}. Question: ${q.question}\n   Based on
                 <QuestionCard key={idx} q={q} type="fit" />
               ))}
             </div>
+          </div>
+
+          {/* Comment box for question refining */}
+          <div className="mt-4 border-t border-slate-200 pt-4 bg-slate-50/50 rounded-lg p-3">
+            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-1">
+              Refine Questions (HR Comments)
+            </span>
+            <textarea
+              placeholder="Enter feedback or guidelines to customize this kit (e.g. 'emphasize database performance and indexing skills', 'probe why they changed jobs in 2024')..."
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              className="w-full rounded border border-slate-200 p-2 text-xs focus:border-slate-400 focus:outline-none"
+              rows={2}
+            />
+            <button
+              type="button"
+              onClick={() => handleGenerate(true, comments)}
+              disabled={loading || !comments.trim()}
+              className="mt-2 rounded bg-violet-600 hover:bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white transition disabled:opacity-50"
+            >
+              {loading ? "Regenerating..." : "✨ Regenerate Questions based on Comments"}
+            </button>
           </div>
         </div>
       )}
@@ -259,8 +322,88 @@ function FeedbackDraftSection({ jobId, candidateId, recommendation, onTabChange 
   );
 }
 
-function ExpandedCandidate({ jobId, candidateId, criteria, onTabChange }) {
-  const { data: evaluation, error, loading } = useApi(
+function DecisionOverrideSection({ jobId, candidateId, evaluation, refetchEval, refetchRanking }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const isFailed = evaluation.knockoutFailed || evaluation.recommendation === "reject_review";
+  const decision = evaluation.hrDecision;
+
+  async function handleDecision(newDecision) {
+    setLoading(true);
+    setError(null);
+    try {
+      await candidatesApi.setCandidateDecision(jobId, candidateId, newDecision);
+      await refetchEval();
+      if (refetchRanking) refetchRanking();
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="rounded-md border border-slate-200 bg-slate-50 p-3 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">HR Screening Override</span>
+          <div className="mt-1 text-sm text-slate-700 font-medium">
+            Current Status:{" "}
+            {decision === "passed" ? (
+              <span className="text-green-700 font-bold">Passed by HR</span>
+            ) : decision === "potential" ? (
+              <span className="text-amber-700 font-bold">Potential (Under Consideration)</span>
+            ) : decision === "rejected" ? (
+              <span className="text-red-700 font-bold">Rejected by HR</span>
+            ) : isFailed ? (
+              <span className="text-red-700 font-bold">Failed Automated Screening</span>
+            ) : (
+              <span className="text-green-700 font-bold">Passed Automated Screening</span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {decision !== "passed" && (
+            <button
+              type="button"
+              onClick={() => handleDecision("passed")}
+              disabled={loading}
+              className="rounded bg-green-600 hover:bg-green-700 px-3 py-1.5 text-xs font-semibold text-white transition disabled:opacity-50"
+            >
+              Mark as Passed
+            </button>
+          )}
+          {decision !== "potential" && decision !== "passed" && decision !== "rejected" && (
+            <button
+              type="button"
+              onClick={() => handleDecision("potential")}
+              disabled={loading}
+              className="rounded bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition disabled:opacity-50"
+            >
+              Mark as Potential
+            </button>
+          )}
+          {decision !== "rejected" && (
+            <button
+              type="button"
+              onClick={() => handleDecision("rejected")}
+              disabled={loading}
+              className="rounded bg-red-600 hover:bg-red-700 px-3 py-1.5 text-xs font-semibold text-white transition disabled:opacity-50"
+            >
+              Reject
+            </button>
+          )}
+        </div>
+      </div>
+      <ErrorBanner error={error} />
+    </div>
+  );
+}
+
+function ExpandedCandidate({ jobId, candidateId, criteria, onTabChange, refetchRanking }) {
+  const { data: evaluation, error, loading, refetch: refetchEval } = useApi(
     () => candidatesApi.getEvaluation(jobId, candidateId),
     [jobId, candidateId]
   );
@@ -284,8 +427,19 @@ function ExpandedCandidate({ jobId, candidateId, criteria, onTabChange }) {
   const criterionById = new Map((criteria?.criteria ?? []).map((c) => [c.id, c]));
   const knockoutById = new Map((criteria?.knockouts ?? []).map((k) => [k.id, k]));
 
+  const isFailed = evaluation.knockoutFailed || evaluation.recommendation === "reject_review";
+  const canShowKit = !isFailed || evaluation.hrDecision === "passed";
+
   return (
     <div className="space-y-4 border-t border-slate-100 px-4 py-4">
+      <DecisionOverrideSection
+        jobId={jobId}
+        candidateId={candidateId}
+        evaluation={evaluation}
+        refetchEval={refetchEval}
+        refetchRanking={refetchRanking}
+      />
+
       <div>
         <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Knockouts</h4>
         <ul className="space-y-2">
@@ -336,18 +490,30 @@ function ExpandedCandidate({ jobId, candidateId, criteria, onTabChange }) {
         </div>
       </div>
 
-      <FeedbackDraftSection
-        jobId={jobId}
-        candidateId={candidateId}
-        recommendation={evaluation.recommendation}
-        onTabChange={onTabChange}
-      />
+      {/* Draft Rejection Email */}
+      {(evaluation.hrDecision === "rejected" || (!evaluation.hrDecision && isFailed)) && (
+        <FeedbackDraftSection
+          jobId={jobId}
+          candidateId={candidateId}
+          recommendation={evaluation.recommendation}
+          onTabChange={onTabChange}
+        />
+      )}
 
-      <InterviewKitSection
-        jobId={jobId}
-        candidateId={candidateId}
-        evaluation={evaluation}
-      />
+      {/* Interview Question Kit generation block */}
+      {canShowKit ? (
+        <InterviewKitSection
+          jobId={jobId}
+          candidateId={candidateId}
+          evaluation={evaluation}
+        />
+      ) : (
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-center mt-6">
+          <p className="text-xs text-slate-500 font-medium">
+            Interview Question Kit is locked. You must mark this candidate as "Passed" to generate and review the questions.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -492,7 +658,22 @@ function RankingTab({ jobId, onTabChange }) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {c.knockoutFailed && (
+                {c.hrDecision === "passed" && (
+                  <span className="rounded-full border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
+                    ✓ Passed by HR
+                  </span>
+                )}
+                {c.hrDecision === "potential" && (
+                  <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                    ⚠ Potential
+                  </span>
+                )}
+                {c.hrDecision === "rejected" && (
+                  <span className="rounded-full border border-red-300 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">
+                    ✗ Rejected by HR
+                  </span>
+                )}
+                {!c.hrDecision && c.knockoutFailed && (
                   <span className="rounded-full border border-red-300 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">
                     Knockout failed
                   </span>
@@ -502,7 +683,7 @@ function RankingTab({ jobId, onTabChange }) {
                     Stale
                   </span>
                 )}
-                <Badge recommendation={c.recommendation} />
+                <Badge recommendation={c.hrDecision === "rejected" ? "reject_review" : c.recommendation} />
               </div>
             </button>
 
@@ -512,6 +693,7 @@ function RankingTab({ jobId, onTabChange }) {
                 candidateId={c.candidateId}
                 criteria={criteria}
                 onTabChange={onTabChange}
+                refetchRanking={refetch}
               />
             )}
           </div>

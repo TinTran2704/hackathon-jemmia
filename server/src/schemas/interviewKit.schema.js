@@ -16,4 +16,6 @@ export const InterviewKitSchema = z.object({
   openingNote: z.string().max(300), // 2-3 sentence brief for the interviewer
   generatedAt: z.string(),
   evaluationVersion: z.string(), // evaluatedAt it was built from
+  invitationSent: z.boolean().optional().nullable(),
+  comments: z.string().optional().nullable(),
 });

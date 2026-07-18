@@ -34,11 +34,14 @@ export async function rank(jobId) {
       topStrength: evaluation.strengths[0] ?? null,
       topConcern: evaluation.concerns[0] ?? null,
       stale: Boolean(criteria) && evaluation.criteriaVersion !== criteria.generatedAt,
+      hrDecision: evaluation.hrDecision ?? null,
     });
   }
 
   ranked.sort((a, b) => {
-    if (a.knockoutFailed !== b.knockoutFailed) return a.knockoutFailed ? 1 : -1;
+    const aFailed = a.hrDecision === "passed" ? false : (a.hrDecision === "rejected" || a.knockoutFailed);
+    const bFailed = b.hrDecision === "passed" ? false : (b.hrDecision === "rejected" || b.knockoutFailed);
+    if (aFailed !== bFailed) return aFailed ? 1 : -1;
     return b.totalScore - a.totalScore;
   });
 

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const OutboxMessageSchema = z.object({
   id: z.string(),
-  type: z.enum(["hr_digest", "candidate_feedback"]),
+  type: z.enum(["hr_digest", "candidate_feedback", "interview_invite"]),
   to: z.string().email(),
   subject: z.string().min(3),
   bodyText: z.string().min(10),

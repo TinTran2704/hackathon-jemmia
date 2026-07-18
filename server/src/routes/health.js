@@ -8,6 +8,7 @@ router.get("/", (req, res) => {
     status: "ok",
     llm: config.llm.configured ? "configured" : "missing",
     r2: config.r2.configured ? "configured" : "missing",
+    mail: config.smtp.configured ? "smtp" : "demo",
   });
 });
 

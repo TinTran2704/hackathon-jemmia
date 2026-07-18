@@ -7,8 +7,9 @@ import Spinner from "../components/Spinner.jsx";
 import CandidatesTab from "../features/candidates/CandidatesTab.jsx";
 import CriteriaTab from "../features/criteria/CriteriaTab.jsx";
 import RankingTab from "../features/ranking/RankingTab.jsx";
+import OutboxTab from "../features/outbox/OutboxTab.jsx";
 
-const TABS = ["Candidates", "Criteria", "Ranking"];
+const TABS = ["Candidates", "Criteria", "Ranking", "Outbox"];
 
 function JobDetailPage() {
   const { jobId } = useParams();
@@ -45,7 +46,8 @@ function JobDetailPage() {
 
           {tab === "Candidates" && <CandidatesTab jobId={jobId} />}
           {tab === "Criteria" && <CriteriaTab jobId={jobId} />}
-          {tab === "Ranking" && <RankingTab jobId={jobId} />}
+          {tab === "Ranking" && <RankingTab jobId={jobId} onTabChange={setTab} />}
+          {tab === "Outbox" && <OutboxTab jobId={jobId} />}
         </>
       )}
     </div>

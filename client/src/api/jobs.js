@@ -39,3 +39,11 @@ export function rescore(jobId) {
 export function getRanking(jobId) {
   return get(`/jobs/${jobId}/ranking`);
 }
+
+export function sendHrDigest(jobId, email) {
+  return post(`/jobs/${jobId}/notify/hr`, { to: email });
+}
+
+export function getOutbox(jobId) {
+  return get(`/jobs/${jobId}/outbox`);
+}

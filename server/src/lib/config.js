@@ -31,4 +31,10 @@ export const config = {
       return Boolean(this.endpoint && this.accessKey && this.secretKey && this.bucket);
     },
   },
+  smtp: {
+    url: process.env.SMTP_URL || null,
+    get configured() {
+      return Boolean(this.url);
+    },
+  },
 };

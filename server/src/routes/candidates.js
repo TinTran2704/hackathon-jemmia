@@ -6,6 +6,7 @@ import { readProfile } from "../repositories/profileRepo.js";
 import { readEvaluation } from "../repositories/evaluationRepo.js";
 import * as profileService from "../services/profileService.js";
 import * as evaluationService from "../services/evaluationService.js";
+import * as interviewKitService from "../services/interviewKitService.js";
 
 const router = Router({ mergeParams: true });
 
@@ -68,6 +69,28 @@ router.get("/:candidateId/evaluation", async (req, res, next) => {
     const evaluation = await readEvaluation(jobId, candidateId);
     if (!evaluation) throw new AppError("EVALUATION_NOT_FOUND", "Evaluation not found", 404);
     res.json(evaluation);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/:candidateId/interview-kit", async (req, res, next) => {
+  try {
+    const { jobId, candidateId } = req.params;
+    const force = req.query.force === "true";
+    const kit = await interviewKitService.generate({ jobId, candidateId, force });
+    res.status(201).json(kit);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/:candidateId/interview-kit", async (req, res, next) => {
+  try {
+    const { jobId, candidateId } = req.params;
+    const kit = await interviewKitService.get({ jobId, candidateId });
+    if (!kit) throw new AppError("INTERVIEW_KIT_NOT_FOUND", "Interview kit not found", 404);
+    res.json(kit);
   } catch (err) {
     next(err);
   }

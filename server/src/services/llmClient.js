@@ -82,14 +82,19 @@ async function doComplete({ system, user, maxTokens }, isRetry) {
   return content;
 }
 
-export async function complete({ system, user, maxTokens = 1500 }) {
+// NOTE: the configured free model (openai/gpt-oss-20b:free) is a reasoning
+// model — a chunk of maxTokens is consumed by internal reasoning before the
+// final JSON, so the default must leave enough headroom or content comes
+// back empty. 4000 was picked after 1500 truncated real criteria/evaluation
+// calls in testing.
+export async function complete({ system, user, maxTokens = 4000 }) {
   if (!config.llm.configured) {
     throw new AppError("LLM_NOT_CONFIGURED", "LLM provider is not configured", 503);
   }
   return runExclusive(() => doComplete({ system, user, maxTokens }, false));
 }
 
-export async function completeJson({ system, user, schema, maxTokens = 1500 }) {
+export async function completeJson({ system, user, schema, maxTokens = 4000 }) {
   const raw = await complete({ system, user, maxTokens });
   try {
     return schema.parse(JSON.parse(stripFences(raw)));

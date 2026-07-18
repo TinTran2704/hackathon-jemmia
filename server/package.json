@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "node --test src/lib/scoring.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

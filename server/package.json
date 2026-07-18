@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "build": "echo 'No build step required'",
+    "build": "npm install --prefix ../client && VITE_API_URL=/api npm run build --prefix ../client",
     "lint": "eslint src",
     "test": "node --test src/lib/scoring.test.js"
   },

@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import { z } from "zod";
 import { config } from "./lib/config.js";
 import { logger } from "./lib/logger.js";
@@ -27,6 +29,19 @@ app.use("/api/jobs/:jobId", rankingRouter);
 app.use("/api/jobs/:jobId", importCvsRouter);
 app.use("/api/jobs/:jobId", outboxRouter);
 app.use("/api/jobs", jobsRouter);
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Serve static client assets from the client build folder
+app.use(express.static(path.join(__dirname, "../../client/dist")));
+
+// Catch-all route to serve the React SPA for any client routing
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    return next();
+  }
+  res.sendFile(path.join(__dirname, "../../client/dist/index.html"));
+});
 
 app.use((req, res) => {
   res

@@ -19,6 +19,11 @@ const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
+app.use((req, res, next) => {
+  logger.info(`[API] ${req.method} ${req.originalUrl || req.url}`);
+  next();
+});
+
 app.use("/api/health", healthRouter);
 app.use("/api/jobs/:jobId/cvs", cvRouter);
 app.use("/api/jobs/:jobId/candidates", candidatesRouter);

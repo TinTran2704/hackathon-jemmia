@@ -8,7 +8,12 @@ import { stripFences } from "../lib/stripFences.js";
 let tail = Promise.resolve();
 
 function runExclusive(task) {
-  const result = tail.then(task, task);
+  logger.info("LLM call queued (waiting for in-flight calls to finish)...");
+  const wrapped = () => {
+    logger.info("LLM call active (starting upstream request)...");
+    return task();
+  };
+  const result = tail.then(wrapped, wrapped);
   tail = result.then(
     () => undefined,
     () => undefined
@@ -63,6 +68,7 @@ async function doComplete({ system, user, maxTokens }, isRetry) {
     }
     const retryAfterHeader = res.headers.get("retry-after");
     const waitMs = retryAfterHeader ? Number(retryAfterHeader) * 1000 : 5000;
+    logger.warn(`LLM rate limited (429). Sleeping for ${waitMs}ms before retrying...`);
     await sleep(Number.isFinite(waitMs) && waitMs > 0 ? waitMs : 5000);
     return doComplete({ system, user, maxTokens }, true);
   }

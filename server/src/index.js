@@ -16,7 +16,7 @@ import outboxRouter from "./routes/outbox.js";
 
 const app = express();
 
-app.use(cors({ origin: config.clientOrigin }));
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 app.use("/api/health", healthRouter);
@@ -29,13 +29,17 @@ app.use("/api/jobs/:jobId", outboxRouter);
 app.use("/api/jobs", jobsRouter);
 
 app.use((req, res) => {
-  res.status(404).json({ error: { code: "NOT_FOUND", message: "Route not found" } });
+  res
+    .status(404)
+    .json({ error: { code: "NOT_FOUND", message: "Route not found" } });
 });
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   if (err instanceof z.ZodError) {
-    const message = err.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ");
+    const message = err.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
     res.status(400).json({ error: { code: "VALIDATION_ERROR", message } });
     return;
   }

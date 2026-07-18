@@ -21,7 +21,7 @@ that HR reviews and adjusts.
 | Backend    | Node.js 20 LTS + Express             | ES Modules (`"type": "module"`)    |
 | Frontend   | React 18 + Vite                      | Functional components + hooks only |
 | Styling    | Tailwind CSS                         | No inline styles, no CSS files per component |
-| AI         | Anthropic API (claude-sonnet)        | All prompts live in `/server/src/prompts/` |
+| AI         | Free LLM API (provider TBD, step 2+) | Integrated later. All prompts live in `/server/src/prompts/`; provider hidden behind `services/llmClient.js` so it can be swapped freely |
 | Storage    | Local filesystem (MVP)               | See `step1.md` — JSON + uploaded files on disk |
 | Validation | zod                                  | Validate ALL external input (API bodies, LLM JSON output) |
 
@@ -73,8 +73,9 @@ hirekit/
   `lib/logger.js` (`logger.info/warn/error`).
 
 ### LLM calls (critical)
-- Every LLM call goes through `services/llmClient.js` — never call fetch
-  to the API directly from other files.
+- Not used until step 2+. Every LLM call goes through `services/llmClient.js`
+  — never call fetch to a provider directly from other files. The provider
+  (any free LLM API) is a config detail, swappable without touching services.
 - Prompts are template functions in `prompts/`, never inline strings.
 - LLM output that must be JSON: prompt explicitly demands raw JSON (no
   markdown fences), then `stripFences() → JSON.parse → zodSchema.parse`.

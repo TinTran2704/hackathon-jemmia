@@ -9,5 +9,6 @@ export const CvMetaSchema = z.object({
   ]),
   size: z.number().int().positive(),
   storedAs: z.string().min(1),
+  sourceKey: z.string().nullable(),
   uploadedAt: z.string().datetime(),
 });

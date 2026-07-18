@@ -11,6 +11,7 @@ import cvRouter from "./routes/cv.js";
 import candidatesRouter from "./routes/candidates.js";
 import criteriaRouter from "./routes/criteria.js";
 import rankingRouter from "./routes/ranking.js";
+import importCvsRouter from "./routes/importCvs.js";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use("/api/jobs/:jobId/cvs", cvRouter);
 app.use("/api/jobs/:jobId/candidates", candidatesRouter);
 app.use("/api/jobs/:jobId/criteria", criteriaRouter);
 app.use("/api/jobs/:jobId", rankingRouter);
+app.use("/api/jobs/:jobId", importCvsRouter);
 app.use("/api/jobs", jobsRouter);
 
 app.use((req, res) => {

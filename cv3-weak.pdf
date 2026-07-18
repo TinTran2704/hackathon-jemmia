@@ -1,0 +1,52 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 612 1000] /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 1002 >>
+stream
+BT /F1 11 Tf 50 760 Td
+(Emily Johnson) Tj 0 -16 Td
+(Email: emily.johnson@example.com) Tj 0 -16 Td
+(Phone: 555-0199) Tj 0 -16 Td
+(Location: Austin, TX) Tj 0 -16 Td
+() Tj 0 -16 Td
+(Summary: Marketing coordinator with 4 years of experience in digital campaigns and social media.) Tj 0 -16 Td
+() Tj 0 -16 Td
+(Experience:) Tj 0 -16 Td
+(BrightAds Agency - Marketing Coordinator, 2021-01 to Present) Tj 0 -16 Td
+(Managed social media campaigns for over 10 clients, increasing engagement by 35 percent.) Tj 0 -16 Td
+(Created email marketing content and analyzed campaign performance with Google Analytics.) Tj 0 -16 Td
+() Tj 0 -16 Td
+(Retail Co - Marketing Intern, 2020-06 to 2020-12) Tj 0 -16 Td
+(Assisted with in-store promotional events and customer surveys.) Tj 0 -16 Td
+() Tj 0 -16 Td
+(Education:) Tj 0 -16 Td
+(BA Marketing, University of Texas at Austin, 2020) Tj 0 -16 Td
+() Tj 0 -16 Td
+(Skills: Social Media Marketing, Adobe Photoshop, Google Analytics, Content Writing, Email Marketing) Tj 0 -16 Td
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000242 00000 n 
+0000000312 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1366
+%%EOF

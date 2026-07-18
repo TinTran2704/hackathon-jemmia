@@ -1,7 +1,12 @@
 import { Router } from "express";
+import { z } from "zod";
 import { AppError } from "../lib/errors.js";
 import { requireJob } from "./jobs.js";
 import * as criteriaService from "../services/criteriaService.js";
+
+const PatchWeightsBody = z.object({
+  weights: z.record(z.string(), z.number().min(1).max(5)),
+});
 
 const router = Router({ mergeParams: true });
 
@@ -25,6 +30,16 @@ router.get("/", async (req, res, next) => {
   try {
     const criteria = await criteriaService.get(req.params.jobId);
     if (!criteria) throw new AppError("CRITERIA_NOT_FOUND", "Criteria not found for this job", 404);
+    res.json(criteria);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch("/", async (req, res, next) => {
+  try {
+    const { weights } = PatchWeightsBody.parse(req.body);
+    const criteria = await criteriaService.updateWeights({ jobId: req.params.jobId, weights });
     res.json(criteria);
   } catch (err) {
     next(err);

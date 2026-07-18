@@ -9,14 +9,19 @@ function candidateDir(jobId, candidateId) {
   return path.join(config.storage.jobs, jobId, "candidates", candidateId);
 }
 
-export async function saveCv({ jobId, tmpPath, originalName, mimeType, size }) {
+export async function saveCv({ jobId, tmpPath, buffer, originalName, mimeType, size, sourceKey }) {
   const candidateId = nanoid(10);
   const ext = path.extname(originalName);
   const dir = candidateDir(jobId, candidateId);
   await fs.mkdir(dir, { recursive: true });
 
   const storedAs = `original${ext}`;
-  await fs.rename(tmpPath, path.join(dir, storedAs));
+  const destPath = path.join(dir, storedAs);
+  if (buffer) {
+    await fs.writeFile(destPath, buffer);
+  } else {
+    await fs.rename(tmpPath, destPath);
+  }
 
   const meta = CvMetaSchema.parse({
     candidateId,
@@ -24,11 +29,17 @@ export async function saveCv({ jobId, tmpPath, originalName, mimeType, size }) {
     mimeType,
     size,
     storedAs,
+    sourceKey: sourceKey ?? null,
     uploadedAt: new Date().toISOString(),
   });
   await writeJsonAtomic(path.join(dir, "meta.json"), meta);
 
   return meta;
+}
+
+export async function findBySourceKey(jobId, sourceKey) {
+  const metas = await listCandidates(jobId);
+  return metas.find((meta) => meta.sourceKey === sourceKey) ?? null;
 }
 
 export async function getCvMeta(jobId, candidateId) {

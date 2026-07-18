@@ -22,4 +22,13 @@ export const config = {
       return Boolean(this.baseUrl && this.apiKey && this.model);
     },
   },
+  r2: {
+    endpoint: process.env.STORAGE_ENDPOINT || null,
+    accessKey: process.env.STORAGE_ACCESS_KEY || null,
+    secretKey: process.env.STORAGE_SECRET_KEY || null,
+    bucket: process.env.STORAGE_BUCKET || null,
+    get configured() {
+      return Boolean(this.endpoint && this.accessKey && this.secretKey && this.bucket);
+    },
+  },
 };

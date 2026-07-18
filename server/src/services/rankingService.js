@@ -28,6 +28,8 @@ export async function rank(jobId) {
     ranked.push({
       candidateId: meta.candidateId,
       fullName: profile.fullName,
+      email: profile.email,
+      phone: profile.phone,
       totalScore: evaluation.totalScore,
       recommendation: evaluation.recommendation,
       knockoutFailed: evaluation.knockoutFailed,

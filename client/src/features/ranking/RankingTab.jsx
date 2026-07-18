@@ -47,6 +47,31 @@ function QuestionCard({ q, type }) {
   );
 }
 
+function InterviewKitToggle({ jobId, candidateId, evaluation }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="mt-6 border-t border-slate-200 pt-4">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center justify-between text-left"
+      >
+        <span className="text-sm font-semibold text-slate-800">
+          Personalized Interview Kit <span className="font-normal text-slate-400">(optional)</span>
+        </span>
+        <span className="text-xs font-medium text-violet-700">
+          {expanded ? "▾ Hide" : "▸ Show / generate"}
+        </span>
+      </button>
+
+      {expanded && (
+        <InterviewKitSection jobId={jobId} candidateId={candidateId} evaluation={evaluation} />
+      )}
+    </div>
+  );
+}
+
 function InterviewKitSection({ jobId, candidateId, evaluation }) {
   const [kit, setKit] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -133,9 +158,8 @@ ${kit.fitQuestions.map((q, i) => `${i + 1}. Question: ${q.question}\n   Based on
   const isStale = kit && kit.evaluationVersion !== evaluation.evaluatedAt;
 
   return (
-    <div className="mt-6 border-t border-slate-200 pt-4">
-      <div className="flex items-center justify-between mb-4">
-        <h4 className="text-sm font-semibold text-slate-800">Personalized Interview Kit</h4>
+    <div className="mt-3">
+      <div className="flex items-center justify-end mb-4">
         {kit && (
           <div className="flex items-center gap-2">
             {kit.invitationSent ? (
@@ -500,9 +524,9 @@ function ExpandedCandidate({ jobId, candidateId, criteria, onTabChange, refetchR
         />
       )}
 
-      {/* Interview Question Kit generation block */}
+      {/* Interview Question Kit generation block — collapsed until HR opts in */}
       {canShowKit ? (
-        <InterviewKitSection
+        <InterviewKitToggle
           jobId={jobId}
           candidateId={candidateId}
           evaluation={evaluation}
@@ -651,6 +675,11 @@ function RankingTab({ jobId, onTabChange }) {
                 <span className="text-2xl font-bold text-slate-800">{c.totalScore}</span>
                 <div>
                   <div className="font-medium text-slate-900">{c.fullName ?? "Unnamed candidate"}</div>
+                  <div className="flex flex-wrap items-center gap-x-3 text-xs text-slate-500">
+                    {c.email && <span>✉ {c.email}</span>}
+                    {c.phone && <span>☎ {c.phone}</span>}
+                    {!c.email && !c.phone && <span>No contact info extracted</span>}
+                  </div>
                   <div className="text-xs text-slate-500">
                     {c.topStrength ?? "—"}
                     {c.topConcern ? ` · concern: ${c.topConcern}` : ""}

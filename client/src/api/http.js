@@ -1,4 +1,11 @@
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+let apiBase = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+if (apiBase) {
+  apiBase = apiBase.replace(/\/$/, "");
+  if (!apiBase.endsWith("/api")) {
+    apiBase = apiBase + "/api";
+  }
+}
+const BASE_URL = apiBase;
 
 export class ApiError extends Error {
   constructor(code, message, status) {
